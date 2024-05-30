@@ -3,18 +3,19 @@ import * as bodyParser from 'body-parser';
 import { Request, Response } from 'express';
 import { AppDataSource } from './data-source';
 import { Routes } from './routes';
-import { User } from './entity/User';
+import { port } from './config';
+import * as morgan from 'morgan';
 
-function handleError(error, req, res, next){
-    res.status(error.status || 500).send({message: error.message})
+function handleError(error, req, res, next) {
+    res.status(error.status || 500).send({ message: error.message });
 }
 
 AppDataSource.initialize()
     .then(async () => {
-     
         const app = express();
+        app.use(morgan('tiny'))
         app.use(bodyParser.json());
-   
+
         Routes.forEach((route) => {
             (app as any)[route.method](route.route, async (req: Request, res: Response, next: Function) => {
                 try {
@@ -27,8 +28,8 @@ AppDataSource.initialize()
         });
 
         app.use(handleError);
-        app.listen(3000);
+        app.listen(port);
 
-        console.log('Express server has started on port 3000. Open http://localhost:3000/users to see results');
+        console.log(`Express server has started: http://localhost:${port}`);
     })
     .catch((error) => console.log(error));
